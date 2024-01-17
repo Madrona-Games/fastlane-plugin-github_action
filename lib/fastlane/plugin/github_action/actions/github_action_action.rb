@@ -219,7 +219,7 @@ module Fastlane
       def self.repo_get(params, path)
         return other_action.github_api(
           server_url: params[:server_url],
-          api_token: params[:api_token],
+          api_bearer: params[:api_bearer],
           http_method: "GET",
           path: "/repos/#{params[:org]}/#{params[:repo]}#{path}",
           body: {},
@@ -229,7 +229,7 @@ module Fastlane
       def self.repo_put(params, path, body)
         return other_action.github_api(
           server_url: params[:server_url],
-          api_token: params[:api_token],
+          api_bearer: params[:api_bearer],
           http_method: "PUT",
           path: "/repos/#{params[:org]}/#{params[:repo]}#{path}",
           body: body,
@@ -239,7 +239,7 @@ module Fastlane
       def self.match_repo_get(params, path)
         return other_action.github_api(
           server_url: params[:server_url],
-          api_token: params[:api_token],
+          api_bearer: params[:api_bearer],
           http_method: "GET",
           path: "/repos/#{params[:match_org]}/#{params[:match_repo]}#{path}",
           body: {},
@@ -249,7 +249,7 @@ module Fastlane
       def self.match_repo_post(params, path, body)
         return other_action.github_api(
           server_url: params[:server_url],
-          api_token: params[:api_token],
+          api_bearer: params[:api_bearer],
           http_method: "POST",
           path: "/repos/#{params[:match_org]}/#{params[:match_repo]}#{path}",
           body: body,
@@ -259,7 +259,7 @@ module Fastlane
       def self.match_repo_delete(params, path)
         return other_action.github_api(
           server_url: params[:server_url],
-          api_token: params[:api_token],
+          api_bearer: params[:api_bearer],
           http_method: "DELETE",
           path: "/repos/#{params[:match_org]}/#{params[:match_repo]}#{path}",
           body: {},
@@ -301,9 +301,9 @@ module Fastlane
                                        verify_block: proc do |value|
                                          UI.user_error!("Please include the protocol in the server url, e.g. https://your.github.server/api/v3") unless value.include?("//")
                                        end),
-          FastlaneCore::ConfigItem.new(key: :api_token,
-                                       env_name: "FL_GITHUB_API_TOKEN",
-                                       description: "Personal API Token for GitHub - generate one at https://github.com/settings/tokens",
+          FastlaneCore::ConfigItem.new(key: :api_bearer,
+                                       env_name: "FL_GITHUB_API_BEARER",
+                                       description: "Bearer token for authentication with the GitHub API",
                                        sensitive: true,
                                        code_gen_sensitive: true,
                                        is_string: true,
