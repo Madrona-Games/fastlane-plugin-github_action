@@ -168,7 +168,7 @@ module Fastlane
       end
 
       def self.post_secrets(params, additional_secrets)
-        public_key_resp = self.repo_get(params, "/actions/secrets/public-key")
+        public_key_resp = self.github_get(params, "/actions/secrets/public-key")
         key_id = public_key_resp[:json]["key_id"]
         key64 = public_key_resp[:json]["key"]
 
@@ -181,7 +181,7 @@ module Fastlane
           encrypted_secrets[k] = encrypted_value
         end
 
-        existing_secrets_resp = self.repo_get(params, "/actions/secrets")
+        existing_secrets_resp = self.github_get(params, "/actions/secrets")
         existing_secret_names = existing_secrets_resp[:json]["secrets"].map do |secret|
           secret["name"].to_s
         end
@@ -197,7 +197,7 @@ module Fastlane
             key_id: key_id,
             encrypted_value: v
           }
-          self.repo_put(params, "/actions/secrets/#{k}", body)
+          self.github_put(params, "/actions/secrets/#{k}", body)
           UI.message("Saving secret #{k}")
         end
 
@@ -216,6 +216,22 @@ module Fastlane
         return Dotenv.parse(*dotenv_paths)
       end
 
+      def self.github_get(params, path)
+        if params[:writeToOrgSecrets]
+          self.org_get(params, path)
+        else
+          self.repo_get(params, path)
+        end
+      end
+
+      def self.github_put(params, path, body)
+        if params[:writeToOrgSecrets]
+          self.org_put(params, path, body)
+        else
+          self.repo_put(params, path, body)
+        end
+      end
+
       def self.repo_get(params, path)
         return other_action.github_api(
           server_url: params[:server_url],
@@ -232,6 +248,26 @@ module Fastlane
           api_bearer: params[:api_bearer],
           http_method: "PUT",
           path: "/repos/#{params[:org]}/#{params[:repo]}#{path}",
+          body: body,
+        )
+      end
+
+      def self.org_get(params, path)
+        return other_action.github_api(
+          server_url: params[:server_url],
+          api_bearer: params[:api_bearer],
+          http_method: "GET",
+          path: "/orgs/#{params[:org]}#{path}",
+          body: {},
+        )
+      end
+
+      def self.org_put(params, path, body)
+        return other_action.github_api(
+          server_url: params[:server_url],
+          api_bearer: params[:api_bearer],
+          http_method: "PUT",
+          path: "/orgs/#{params[:org]}#{path}",
           body: body,
         )
       end
@@ -310,6 +346,11 @@ module Fastlane
                                        default_value: ENV["GITHUB_API_TOKEN"],
                                        default_value_dynamic: true,
                                        optional: false),
+          FastlaneCore::ConfigItem.new(key: :writeToOrgSecrets,
+                                       env_name: "FL_GITHUB_ACTIONS_WRITE_TO_ORG_SECRETS",
+                                       description: "Whether secrets should be written to the organization's secrets",
+                                       default_value: false,
+                                       type: Boolean),
           FastlaneCore::ConfigItem.new(key: :org,
                                        env_name: "FL_GITHUB_ACTIONS_ORG",
                                        description: "Name of organization of the repository for GitHub Actions"),
