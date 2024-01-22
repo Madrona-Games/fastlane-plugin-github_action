@@ -197,6 +197,9 @@ module Fastlane
             key_id: key_id,
             encrypted_value: v
           }
+          if params[:writeToOrgSecrets]
+            body[:visibility] = params[:orgSecretVisibility]
+          end
           self.github_put(params, "/actions/secrets/#{k}", body)
           UI.message("Saving secret #{k}")
         end
@@ -350,7 +353,14 @@ module Fastlane
                                        env_name: "FL_GITHUB_ACTIONS_WRITE_TO_ORG_SECRETS",
                                        description: "Whether secrets should be written to the organization's secrets",
                                        default_value: false,
-                                       type: Boolean),
+                                       type: Boolean,
+                                       optional: true),
+          FastlaneCore::ConfigItem.new(key: :orgSecretVisibility,
+                                       env_name: "FL_GITHUB_ACTIONS_ORG_SECRET_VISIBILITY",
+                                       description: "Visibility level of organization secrets. Can be `all` or `private`",
+                                       default_value: "private",
+                                       is_string: true,
+                                       optional: true),
           FastlaneCore::ConfigItem.new(key: :org,
                                        env_name: "FL_GITHUB_ACTIONS_ORG",
                                        description: "Name of organization of the repository for GitHub Actions"),
